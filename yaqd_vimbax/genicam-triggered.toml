@@ -1,0 +1,17 @@
+protocol = "vimbax-triggered"
+doc = ""
+traits = ["is-daemon"]
+
+[links]
+source = "https://github.com/yaq-project/yaqd-vimbax"
+bugtracker = "https://github.com/yaq-project/yaqd-vimbax/-/issues"
+
+[installation]
+PyPI = "https://pypi.org/project/yaqd-vimbax"
+
+[config]
+
+[state]
+
+[messages]
+
