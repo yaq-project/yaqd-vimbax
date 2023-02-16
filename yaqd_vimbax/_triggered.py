@@ -3,7 +3,7 @@ __all__ = ["Triggered"]
 import asyncio
 import numpy as np
 import time
-import vmbpy
+import vmbpy  # type: ignore
 
 from typing import Dict, Any, List, Optional
 from yaqd_core import HasMeasureTrigger
