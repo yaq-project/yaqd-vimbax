@@ -1,0 +1,70 @@
+protocol = "vimbax-triggered"
+doc = ""
+traits = ["has-measure-trigger", "is-sensor", "is-daemon"]
+
+[links]
+source = "https://github.com/yaq-project/yaqd-vimbax"
+bugtracker = "https://github.com/yaq-project/yaqd-vimbax/-/issues"
+
+[installation]
+PyPI = "https://pypi.org/project/yaqd-vimbax"
+
+[config]
+
+[state]
+nframes.type = "int"
+nframes.default = 3
+
+[messages]
+
+get_led_brightness.response = "int"
+set_led_brightness.request = [{"name"="brightness", "type"="int"}]
+
+set_exposure_time.request = [{"name"="time", "type"="float"}]
+get_exposure_time.response = "float"
+get_exposure_units.response = "string"
+
+get_temperature.response = "float"
+
+get_nframes.response = "int"
+set_nframes.request = [{"name"="nframes", "type"="int"}]
+
+get_gain.response = "float"
+set_gain.request = [{"name"="gain", "type"="float"}]
+
+[properties.led_brightness]
+type = "int"
+setter = "set_led_brightness"
+getter = "get_led_brightness"
+control_kind = "normal"
+record_kind = "omitted"
+
+[properties.exposure_time]
+type = "float"
+setter = "set_exposure_time"
+getter = "get_exposure_time"
+units_getter = "get_exposure_units"
+control_kind = "hinted"
+record_kind = "metadata"
+
+[properties.temperature]
+type = "float"
+getter = "get_temperature"
+control_kind = "omitted"
+record_kind = "metadata"
+
+[properties.nframes]
+type = "int"
+setter = "set_nframes"
+getter = "get_nframes"
+control_kind = "hinted"
+record_kind = "metadata"
+
+[properties.gain]
+type = "float"
+setter = "set_gain"
+getter = "get_gain"
+control_kind = "hinted"
+record_kind = "metadata"
+
+
