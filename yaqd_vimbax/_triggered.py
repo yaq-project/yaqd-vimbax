@@ -2,7 +2,7 @@ __all__ = ["Triggered"]
 
 import asyncio
 import numpy as np
-import time    
+import time
 
 from typing import Dict, Any, List, Optional
 from yaqd_core import HasMeasureTrigger
@@ -19,6 +19,7 @@ class Triggered(HasMeasureTrigger):
 
     async def update_state(self):
         import vmbpy  # type: ignore
+
         with vmbpy.VmbSystem.get_instance() as vmb:
             if self._config["serial"]:
                 camera_id = self._config["serial"]
