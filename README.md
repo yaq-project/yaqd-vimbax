@@ -7,7 +7,7 @@
 [![ver](https://img.shields.io/badge/calver-YYYY.M.MICRO-blue)](https://calver.org/)
 [![log](https://img.shields.io/badge/change-log-informational)](https://github.com/yaq-project/yaqd-vimbax/-/blob/main/CHANGELOG.md)
 
-Daemons wrapping the [Vimba X SDK](https://www.alliedvision.com/en/products/software/vimba-x-sdk/). Vimba X is fully ([GenICam](https://www.baslerweb.com/en/vision-campus/interfaces-and-standards/genicam-standard/)) compliant.
+Daemons wrapping the [Vimba X SDK](https://www.alliedvision.com/en/products/software/vimba-x-sdk/). Vimba X is fully [GenICam](https://www.baslerweb.com/en/vision-campus/interfaces-and-standards/genicam-standard/) compliant.
 
 This package contains the following daemon(s):
 

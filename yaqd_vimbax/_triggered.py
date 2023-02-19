@@ -38,24 +38,29 @@ class Triggered(HasMeasureTrigger):
                     await asyncio.sleep(1)
 
     async def _measure(self):
-        x1 = np.zeros(self._channel_shapes["mean"], dtype="uint")
-        x2 = x1.copy()
         N = self._state["nframes"]
         time1 = time.time()
-        for frame in self.cam.get_frame_generator(limit=N, timeout_ms=3000):
-            arr = frame.as_numpy_ndarray()[:, :, 0].astype("uint16")
-            x1 += arr
-            x2 += arr**2
-        time4 = time.time()
-        self.logger.info(f"loop {time4-time1:0.2f}")
-        if N < 2:
-            x2.fill(np.nan)
-            stdev = x2
+        if N == 1:
+            try:
+                mean = self.cam.get_frame().as_numpy_ndarray()[:, :, 0]
+                stdev = np.empty(mean.shape)
+                stdev.fill(np.nan)
+            except Exception as e:
+                self.logger.error(str(e))
         else:
+            x1 = np.zeros(self._channel_shapes["mean"], dtype="float")
+            x2 = x1.copy()
+            for frame in self.cam.get_frame_generator(limit=N, timeout_ms=3000):
+                arr = frame.as_numpy_ndarray()[:, :, 0].astype("uint16")
+                x1 += arr
+                x2 += arr**2
             stdev = x2 - x1**2 / N
             stdev /= N - 1
             stdev **= 0.5
-        return {"mean": x1 / N, "stdev": stdev}
+            mean = x1 / N
+        time4 = time.time()
+        self.logger.info(f"loop {time4-time1:0.2f}")
+        return {"mean": mean, "stdev": stdev}
 
     def set_exposure_time(self, time: float):
         self.cam.get_feature_by_name("ExposureTime").set(time * 1e3)
@@ -67,7 +72,7 @@ class Triggered(HasMeasureTrigger):
         return "ms"
 
     def set_nframes(self, nframes: int):
-        self._state["nframes"] = nframes
+        self._state["nframes"] = max(nframes, 1)
 
     def get_nframes(self) -> float:
         return self._state["nframes"]
