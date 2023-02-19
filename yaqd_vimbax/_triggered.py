@@ -3,6 +3,8 @@ __all__ = ["Triggered"]
 import asyncio
 import numpy as np
 import time
+import threading
+import logging
 
 from typing import Dict, Any, List, Optional
 from yaqd_core import HasMeasureTrigger
@@ -39,7 +41,6 @@ class Triggered(HasMeasureTrigger):
 
     async def _measure(self):
         N = self._state["nframes"]
-        time1 = time.time()
         if N == 1:
             try:
                 mean = self.cam.get_frame().as_numpy_ndarray()[:, :, 0]
@@ -48,18 +49,20 @@ class Triggered(HasMeasureTrigger):
             except Exception as e:
                 self.logger.error(str(e))
         else:
-            x1 = np.zeros(self._channel_shapes["mean"], dtype="float")
-            x2 = x1.copy()
-            for frame in self.cam.get_frame_generator(limit=N, timeout_ms=3000):
-                arr = frame.as_numpy_ndarray()[:, :, 0].astype("uint16")
-                x1 += arr
-                x2 += arr**2
-            stdev = x2 - x1**2 / N
+            handler = self.Handler(N, self._channel_shapes["mean"])
+            try:
+                self.cam.start_streaming(handler=handler, buffer_count=10)
+                handler.shutdown_event.wait()
+            except Exception as e:
+                self.logger.error(str(e))
+                raise e
+            finally:
+                self.cam.stop_streaming()
+            mean = handler.x1 / N
+            stdev = handler.x2 - handler.x1**2 / N
             stdev /= N - 1
             stdev **= 0.5
-            mean = x1 / N
-        time4 = time.time()
-        self.logger.info(f"loop {time4-time1:0.2f}")
+            self.logger.info(f"{mean.mean():0.1f} +/- {stdev.mean():0.1f}")
         return {"mean": mean, "stdev": stdev}
 
     def set_exposure_time(self, time: float):
@@ -91,3 +94,24 @@ class Triggered(HasMeasureTrigger):
 
     def set_gain(self, gain: float):
         self.cam.get_feature_by_name("Gain").set(gain)
+
+    class Handler:
+        def __init__(self, nframes, shape):
+            self.shutdown_event = threading.Event()
+            self.frames_remaining = nframes
+            self.x1 = np.zeros(shape, dtype="f8")
+            self.x2 = self.x1.copy()
+
+        def __call__(self, cam, stream, frame):
+            try:
+                if not self.frames_remaining:
+                    self.shutdown_event.set()
+                    return
+                arr = frame.as_numpy_ndarray()[:,:,0].astype("uint16")
+                self.x1 += arr
+                self.x2 += arr**2
+                self.frames_remaining -= 1
+                cam.queue_frame(frame)
+            except Exception as e:
+                logging.getLogger.error(str(e))
+                self.shutdown_event.set()
