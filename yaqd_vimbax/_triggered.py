@@ -107,7 +107,7 @@ class Triggered(HasMeasureTrigger):
                 if not self.frames_remaining:
                     self.shutdown_event.set()
                     return
-                arr = frame.as_numpy_ndarray()[:,:,0].astype("uint16")
+                arr = frame.as_numpy_ndarray()[:, :, 0].astype("uint16")
                 self.x1 += arr
                 self.x2 += arr**2
                 self.frames_remaining -= 1
