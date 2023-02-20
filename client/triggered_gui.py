@@ -1,7 +1,7 @@
-import numpy as np
 import time
-import toml
 import pathlib
+import numpy as np
+import toml  # type: ignore
 import yaqc  # type: ignore
 
 import matplotlib.pyplot as plt  # type: ignore
