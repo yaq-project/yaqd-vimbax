@@ -28,7 +28,7 @@ meas0 = cam.get_measured()["mean"]
 fig = plt.figure("Vimba X")
 gs = gridspec.GridSpec(2, 1, height_ratios=[10, 1])
 
-ax = plt.subplot(gs[0], aspect=408/608)
+ax = plt.subplot(gs[0], aspect=408 / 608)
 im = plt.imshow(meas0, vmax=255, vmin=0)
 ax.grid()
 
@@ -39,6 +39,7 @@ cbar.set_ticks(np.linspace(meas0.min(), meas0.max(), 6))
 for axes in [ax.axes, cax.axes]:
     axes.tick_params(labelsize=16)
 
+
 def update_im(y):
     im.set(data=y)
     im.set_norm(Normalize(y.min(), y.max()))
@@ -46,6 +47,7 @@ def update_im(y):
     cbar.set_ticks(cbar_ticks)
     cbar.draw_all()
     plt.draw()
+
 
 def data_gen():
     index = 0
@@ -62,6 +64,7 @@ def data_gen():
             yield measured["mean"]
         else:
             time.sleep(0.1)
+
 
 ax = plt.subplot(gs[1])
 slider = Slider(ax, "exposure time (ms)", 0.1, 5e3, valinit=cam.get_exposure_time())
