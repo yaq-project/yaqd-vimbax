@@ -67,7 +67,12 @@ get_log_exposure = lambda x: np.log10(cam.get_exposure_time())
 set_log_exposure = lambda x: cam.set_exposure_time(10**x)
 get_log_exposure_limits = lambda x: [np.log10(i) for i in cam.get_exposure_limits()]
 
-exposure = Slider(exposure_ax, f"log(exposure time [{cam.get_exposure_units()}])", *cam.get_exposure_limits(), valinit=cam.get_exposure_time())
+exposure = Slider(
+    exposure_ax,
+    f"log(exposure time [{cam.get_exposure_units()}])",
+    *cam.get_exposure_limits(),
+    valinit=cam.get_exposure_time(),
+)
 exposure.on_changed(cam.set_exposure_time)
 
 frame_ax = plt.subplot(gs[2])
