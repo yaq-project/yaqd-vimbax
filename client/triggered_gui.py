@@ -64,13 +64,17 @@ def data_gen():
 
 exposure_ax = plt.subplot(gs[1])
 
+
 def get_log_exposure():
     return np.log10(cam.get_exposure_time())
 
+
 set_log_exposure = lambda x: cam.set_exposure_time(10**x)
+
 
 def get_log_exposure_limits():
     return [np.log10(i) for i in cam.get_exposure_limits()]
+
 
 exposure = Slider(
     exposure_ax,
