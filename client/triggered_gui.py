@@ -17,7 +17,6 @@ plt.style.use("dark_background")
 config = toml.load(here / "triggered_gui.toml")
 
 cam = yaqc.Client(config["yaq"]["cam_port"])
-cam.set_nframes(config["yaq"].pop("nframes", 3))
 cam.measure(False)
 
 while cam.busy():
@@ -26,7 +25,7 @@ while cam.busy():
 meas0 = cam.get_measured()["mean"]
 
 fig = plt.figure("Vimba X")
-gs = gridspec.GridSpec(2, 1, height_ratios=[10, 1])
+gs = gridspec.GridSpec(3, 1, height_ratios=[10, 1, 1])
 
 ax = plt.subplot(gs[0], aspect=408 / 608)
 im = plt.imshow(meas0, vmax=255, vmin=0)
@@ -51,24 +50,29 @@ def update_im(y):
 
 def data_gen():
     index = 0
-    start = time.time()
     while True:
         m_id = cam.get_measurement_id()
         if index < m_id:
             measured = cam.get_measured()
             index = measured["measurement_id"]
-            t_measure = time.time()
             ax.set_title(f"{index}")
-            start = time.time()
             cam.measure(False)
             yield measured["mean"]
         else:
             time.sleep(0.1)
 
 
-ax = plt.subplot(gs[1])
-slider = Slider(ax, "exposure time (ms)", 0.1, 5e3, valinit=cam.get_exposure_time())
-slider.on_changed(cam.set_exposure_time)
+exposure_ax = plt.subplot(gs[1])
+get_log_exposure = lambda x: np.log10(cam.get_exposure_time())
+set_log_exposure = lambda x: cam.set_exposure_time(10**x)
+get_log_exposure_limits = lambda x: [np.log10(i) for i in cam.get_exposure_limits()]
+
+exposure = Slider(exposure_ax, f"log(exposure time [{cam.get_exposure_units()}])", *cam.get_exposure_limits(), valinit=cam.get_exposure_time())
+exposure.on_changed(cam.set_exposure_time)
+
+frame_ax = plt.subplot(gs[2])
+nframes = Slider(frame_ax, f"nframes", 1, 100, valinit=cam.get_nframes(), valstep=1)
+nframes.on_changed(cam.set_nframes)
 
 # run animation
 ani = animation.FuncAnimation(fig, update_im, data_gen, interval=100)
