@@ -20,9 +20,10 @@ nframes.default = 3
 get_led_brightness.response = "int"
 set_led_brightness.request = [{"name"="brightness", "type"="int"}]
 
-set_exposure_time.request = [{"name"="time", "type"="float"}]
-get_exposure_time.response = "float"
+set_exposure_time.request = [{"name"="time", "type"="int"}]
+get_exposure_time.response = "int"
 get_exposure_units.response = "string"
+get_exposure_limits.response = {"type"="array", "items"="float"}
 
 get_temperature.response = "float"
 
@@ -44,6 +45,7 @@ type = "float"
 setter = "set_exposure_time"
 getter = "get_exposure_time"
 units_getter = "get_exposure_units"
+limits_getter = "get_exposure_limits"
 control_kind = "hinted"
 record_kind = "metadata"
 

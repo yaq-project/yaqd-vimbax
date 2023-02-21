@@ -104,6 +104,15 @@
                 }
             }
         },
+        "get_channel_signs": {
+            "doc": "Returns a map of each channel to a boolean.\n    True indicates channel can have both positive and negative signal.\n\tFalse indicates channel values either positive or negative.\n\tUseful as a plotting hint.\n    ",
+            "origin": "is-sensor",
+            "request": [],
+            "response": {
+                "type": "map",
+                "values": "boolean"
+            }
+        },
         "get_channel_units": {
             "doc": "Get current channel units.",
             "origin": "is-sensor",
@@ -128,9 +137,16 @@
             "request": [],
             "response": "string"
         },
+        "get_exposure_limits": {
+            "request": [],
+            "response": {
+                "items": "float",
+                "type": "array"
+            }
+        },
         "get_exposure_time": {
             "request": [],
-            "response": "float"
+            "response": "int"
         },
         "get_exposure_units": {
             "request": [],
@@ -207,7 +223,7 @@
             "request": [
                 {
                     "name": "time",
-                    "type": "float"
+                    "type": "int"
                 }
             ],
             "response": "null"
@@ -263,7 +279,7 @@
             "control_kind": "hinted",
             "dynamic": true,
             "getter": "get_exposure_time",
-            "limits_getter": null,
+            "limits_getter": "get_exposure_limits",
             "options_getter": null,
             "record_kind": "metadata",
             "setter": "set_exposure_time",
