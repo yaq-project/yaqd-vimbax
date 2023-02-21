@@ -104,15 +104,6 @@
                 }
             }
         },
-        "get_channel_signs": {
-            "doc": "Returns a map of each channel to a boolean.\n    True indicates channel can have both positive and negative signal.\n\tFalse indicates channel values either positive or negative.\n\tUseful as a plotting hint.\n    ",
-            "origin": "is-sensor",
-            "request": [],
-            "response": {
-                "type": "map",
-                "values": "boolean"
-            }
-        },
         "get_channel_units": {
             "doc": "Get current channel units.",
             "origin": "is-sensor",

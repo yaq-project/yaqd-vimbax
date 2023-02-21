@@ -118,4 +118,4 @@ class Triggered(HasMeasureTrigger):
     def get_channel_shapes(self):
         height = self.cam.get_feature_by_name("Height").get()
         width = self.cam.get_feature_by_name("Width").get()
-        return {k:(height, width) for k in self._channel_names}
+        return {k: (height, width) for k in self._channel_names}
