@@ -53,7 +53,7 @@ class Triggered(HasMeasureTrigger):
             handler = self.Handler(N, self.get_channel_shapes()["mean"], "uint16")
             try:
                 self.cam.start_streaming(handler=handler, buffer_count=10)
-                await asyncio.wait_for(handler.ashutdown_event.wait(), 5)
+                await asyncio.wait_for(handler.ashutdown_event.wait(), timeout=30)  # no timeout?
             except Exception as e:
                 self.logger.error(str(e))
                 raise e
