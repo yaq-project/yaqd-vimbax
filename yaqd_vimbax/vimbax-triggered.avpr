@@ -128,9 +128,16 @@
             "request": [],
             "response": "string"
         },
+        "get_exposure_limits": {
+            "request": [],
+            "response": {
+                "items": "float",
+                "type": "array"
+            }
+        },
         "get_exposure_time": {
             "request": [],
-            "response": "float"
+            "response": "int"
         },
         "get_exposure_units": {
             "request": [],
@@ -207,7 +214,7 @@
             "request": [
                 {
                     "name": "time",
-                    "type": "float"
+                    "type": "int"
                 }
             ],
             "response": "null"
@@ -263,7 +270,7 @@
             "control_kind": "hinted",
             "dynamic": true,
             "getter": "get_exposure_time",
-            "limits_getter": null,
+            "limits_getter": "get_exposure_limits",
             "options_getter": null,
             "record_kind": "metadata",
             "setter": "set_exposure_time",

@@ -3,8 +3,10 @@ __all__ = ["Triggered"]
 import asyncio
 import numpy as np
 import time
+import threading
+import logging
 
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Tuple
 from yaqd_core import HasMeasureTrigger
 
 
@@ -14,7 +16,6 @@ class Triggered(HasMeasureTrigger):
     def __init__(self, name, config, config_filepath):
         super().__init__(name, config, config_filepath)
         self._channel_names = ["mean", "stdev"]
-        self._channel_shapes = {k: (608, 808) for k in self._channel_names}
         self._channel_units = {k: None for k in self._channel_names}
 
     async def update_state(self):
@@ -39,7 +40,7 @@ class Triggered(HasMeasureTrigger):
 
     async def _measure(self):
         N = self._state["nframes"]
-        time1 = time.time()
+        start = time.time()
         if N == 1:
             try:
                 mean = self.cam.get_frame().as_numpy_ndarray()[:, :, 0]
@@ -47,29 +48,36 @@ class Triggered(HasMeasureTrigger):
                 stdev.fill(np.nan)
             except Exception as e:
                 self.logger.error(str(e))
+                raise e
         else:
-            x1 = np.zeros(self._channel_shapes["mean"], dtype="float")
-            x2 = x1.copy()
-            for frame in self.cam.get_frame_generator(limit=N, timeout_ms=3000):
-                arr = frame.as_numpy_ndarray()[:, :, 0].astype("uint16")
-                x1 += arr
-                x2 += arr**2
-            stdev = x2 - x1**2 / N
+            handler = self.Handler(N, self.get_channel_shapes()["mean"], "uint16")
+            try:
+                self.cam.start_streaming(handler=handler, buffer_count=10)
+                await asyncio.wait_for(handler.ashutdown_event.wait(), timeout=30)  # no timeout?
+            except Exception as e:
+                self.logger.error(str(e))
+                raise e
+            finally:
+                self.cam.stop_streaming()
+            mean = (handler.x1 / N).astype(np.float32)
+            stdev = handler.x2 - handler.x1**2 / N
             stdev /= N - 1
-            stdev **= 0.5
-            mean = x1 / N
-        time4 = time.time()
-        self.logger.info(f"loop {time4-time1:0.2f}")
+            stdev = (stdev**0.5).astype(np.float32)
+        finish = time.time()
+        self.logger.info(f"took {(finish-start):0.3f} sec")
         return {"mean": mean, "stdev": stdev}
 
     def set_exposure_time(self, time: float):
-        self.cam.get_feature_by_name("ExposureTime").set(time * 1e3)
+        self.cam.get_feature_by_name("ExposureTime").set(time)
 
     def get_exposure_time(self) -> float:
-        return self.cam.get_feature_by_name("ExposureTime").get() / 1e3
+        return self.cam.get_feature_by_name("ExposureTime").get()
 
-    def get_exposure_units(self):
-        return "ms"
+    def get_exposure_units(self) -> str:
+        return "µs"
+
+    def get_exposure_limits(self) -> Tuple[float, float]:
+        return self.cam.get_feature_by_name("ExposureTime").get_range()
 
     def set_nframes(self, nframes: int):
         self._state["nframes"] = max(nframes, 1)
@@ -91,3 +99,26 @@ class Triggered(HasMeasureTrigger):
 
     def set_gain(self, gain: float):
         self.cam.get_feature_by_name("Gain").set(gain)
+
+    class Handler:
+        def __init__(self, nframes, shape, arrtype):
+            self.ashutdown_event = asyncio.Event()
+            self.frames_remaining = nframes
+            self.x1 = np.zeros(shape, dtype="f8")
+            self.x2 = self.x1.copy()
+            self.arrtype = arrtype
+
+        def __call__(self, cam, stream, frame):
+            if not self.frames_remaining:
+                self.ashutdown_event.set()
+                return
+            arr = frame.as_numpy_ndarray()[:, :, 0].astype(self.arrtype)
+            self.x1 += arr
+            self.x2 += arr**2
+            self.frames_remaining -= 1
+            cam.queue_frame(frame)
+
+    def get_channel_shapes(self):
+        height = self.cam.get_feature_by_name("Height").get()
+        width = self.cam.get_feature_by_name("Width").get()
+        return {k: (height, width) for k in self._channel_names}
